@@ -80,6 +80,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .status-tag.b{background:rgba(43,147,245,.15);color:var(--blue)}
 .status-tag.teal{background:rgba(23,196,154,.15);color:var(--teal)}
 .status-tag.flat{background:rgba(109,152,176,.15);color:var(--t2)}
+.status-tag.clickable{cursor:pointer;transition:.15s;position:relative}
+.status-tag.clickable:hover{filter:brightness(1.2);transform:scale(1.05)}
+.status-tag .tag-popup{display:none;position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--t2);line-height:1.6;width:260px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.5);font-weight:400;white-space:normal;text-align:left}
+.status-tag .tag-popup::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--border)}
+.status-tag .tag-popup.show{display:block}
+.chart-conclusion{font-size:12px;color:var(--t3);margin-top:8px;padding:6px 10px;background:rgba(43,147,245,.04);border-radius:6px;border-left:3px solid var(--blue);line-height:1.6}
 
 /* ===== Tab Navigation ===== */
 .tabs{display:flex;gap:2px;margin-bottom:0;background:var(--border);border-radius:10px 10px 0 0;overflow:hidden}
@@ -1484,7 +1490,7 @@ function renderJudgment(d) {
     html += '<div style="font-size:12px;color:var(--t3);margin-bottom:6px">这个页面分两步看：先看今天哪些股票在被交易，再看盘后ETF资金有没有跟上。</div>';
   }
   
-  html += '<div class="j-label">今日市场状态：<span class="status-tag ' + status.cls + '">' + status.tag + '</span></div>';
+  html += '<div class="j-label">今日市场状态：' + renderClickableTag(status) + '</div>';
   html += '<div class="j-text" style="font-size:14px;line-height:1.7">' + stateParts.join('，') + '。</div>';
   
   // === 第二段：交易热度（基于TOP10个股） ===
@@ -1840,7 +1846,7 @@ function renderKpis(d) {
   html += '<div class="kpi-card k-status">';
   html += '<div class="k-icon">🏷️</div>';
   html += '<div class="k-label">今日资金状态</div>';
-  html += '<div class="k-value"><span class="status-tag ' + status.cls + '">' + status.tag + '</span></div>';
+  html += '<div class="k-value">' + renderClickableTag(status) + '</div>';
   html += '<div class="k-desc">' + status.desc.substring(0, 40) + (status.desc.length > 40 ? '...' : '') + '</div>';
   html += '</div>';
   
@@ -2635,6 +2641,25 @@ function renderConcentrationTab() {
         c._needsRender = null;
       }, 50);
     }
+    // P1-4: Concentration trend conclusion
+    try {
+      var concOnlyDates2 = concDates.filter(function(dt) { return fusedData[dt] && fusedData[dt].total; });
+      if (concOnlyDates2.length >= 2) {
+        var lastPct = fusedData[concOnlyDates2[concOnlyDates2.length-1]].top100S / fusedData[concOnlyDates2[concOnlyDates2.length-1]].total * 100;
+        var prev5 = concOnlyDates2.slice(-6, -1);
+        var avgPrev = prev5.reduce(function(s,dt){return s + fusedData[dt].top100S/fusedData[dt].total*100;},0)/Math.max(prev5.length,1);
+        var concTrendConcl = '';
+        if (lastPct >= 35) concTrendConcl = '当前TOP100占比' + lastPct.toFixed(1) + '%，处于偏高区间，资金抱团明显。';
+        else if (lastPct >= 30) concTrendConcl = '当前TOP100占比' + lastPct.toFixed(1) + '%，略高于均值，资金偏集中。';
+        else concTrendConcl = '当前TOP100占比' + lastPct.toFixed(1) + '%，资金分布较均衡。';
+        if (lastPct > avgPrev + 1) concTrendConcl += ' 近期集中度上升，主线吸金效应增强。';
+        else if (lastPct < avgPrev - 1) concTrendConcl += ' 近期集中度下降，资金在扩散。';
+        var trendCard = c.parentElement;
+        var trendConcl = trendCard.querySelector('.chart-conclusion');
+        if (!trendConcl) { trendConcl = document.createElement('div'); trendConcl.className = 'chart-conclusion'; trendCard.appendChild(trendConcl); }
+        trendConcl.textContent = concTrendConcl;
+      }
+    } catch(concEx) {}
   } catch(ex) { console.error('trend error:', ex); }
 }
 
@@ -3987,6 +4012,75 @@ function renderEtfTrends(d) {
       return {label:name, data:ds.map(function(dt){ var wb = (fusedData[dt].wideBase||[]).find(function(w){return w.name === name;}); return wb ? wb.chg : null; }), borderColor:chgColors[i%chgColors.length],borderWidth:1.5,pointRadius:ds.length>10?1.5:2,fill:false,tension:0.2};
     })}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6d98b0',font:{size:9},boxWidth:10}}},scales:{x:{ticks:xTickFont,grid:{color:'rgba(31,48,64,.3)'}},y:{ticks:{color:'#6d98b0',font:{size:10},callback:function(v){return v+'%';}},grid:{color:'rgba(31,48,64,.3)'}}}}
   });
+
+  // P1-4: Chart one-sentence conclusions
+  try {
+    // Chart 1 conclusion: total flow trend
+    var totalFlows = ds.map(function(dt){ return fusedData[dt].wideTotal || 0; });
+    var recentFlow = totalFlows[totalFlows.length - 1] || 0;
+    var prev3Avg = totalFlows.slice(-4, -1).reduce(function(a,b){return a+b;}, 0) / Math.max(totalFlows.slice(-4,-1).length, 1);
+    var totalConclusion = '';
+    if (recentFlow > 20) totalConclusion = '近一日宽基资金大幅净流入' + recentFlow.toFixed(0) + '亿，ETF承接力度较强。';
+    else if (recentFlow > 5) totalConclusion = '宽基ETF维持净流入，资金面有支撑。';
+    else if (recentFlow > -5) totalConclusion = '宽基ETF资金流接近平衡，无明显方向。';
+    else if (recentFlow > -20) totalConclusion = '宽基ETF净流出' + Math.abs(recentFlow).toFixed(0) + '亿，资金面偏弱。';
+    else totalConclusion = '宽基ETF大幅净流出' + Math.abs(recentFlow).toFixed(0) + '亿，需关注赎回压力。';
+    if (totalFlows.length >= 3) {
+      var posDays = totalFlows.slice(-5).filter(function(v){return v > 0;}).length;
+      if (posDays >= 4) totalConclusion += ' 近5日持续流入，趋势较稳。';
+    }
+    var c1Parent = c1.parentElement;
+    var c1concl = c1Parent.querySelector('.chart-conclusion');
+    if (!c1concl) { c1concl = document.createElement('div'); c1concl.className = 'chart-conclusion'; c1Parent.appendChild(c1concl); }
+    c1concl.textContent = totalConclusion;
+
+    // Chart 2 conclusion: style flow comparison
+    var styleGroupNames = Object.keys(styleGroups);
+    var latestDay = ds[ds.length - 1];
+    var styleFlows = {};
+    styleGroupNames.forEach(function(g) {
+      var names = styleGroups[g];
+      styleFlows[g] = (fusedData[latestDay].wideBase||[]).filter(function(w){return names.includes(w.name);}).reduce(function(s,w){return s+(w.flow||0);},0);
+    });
+    var maxStyle = styleGroupNames.reduce(function(a,b){return (styleFlows[a]||0)>(styleFlows[b]||0)?a:b;});
+    var minStyle = styleGroupNames.reduce(function(a,b){return (styleFlows[a]||0)<(styleFlows[b]||0)?a:b;});
+    var styleConclusion = '';
+    if ((styleFlows[maxStyle]||0) > 0) {
+      styleConclusion = '当日' + maxStyle + '资金流入最强（+' + (styleFlows[maxStyle]||0).toFixed(1) + '亿）';
+      if (maxStyle !== minStyle && (styleFlows[minStyle]||0) < 0) {
+        styleConclusion += '，' + minStyle + '净流出（' + (styleFlows[minStyle]||0).toFixed(1) + '亿），风格分化明显。';
+      } else { styleConclusion += '。'; }
+    } else {
+      styleConclusion = '各风格宽基ETF资金流偏弱，无明显流入方向。';
+    }
+    var c2Parent = c2.parentElement;
+    var c2concl = c2Parent.querySelector('.chart-conclusion');
+    if (!c2concl) { c2concl = document.createElement('div'); c2concl.className = 'chart-conclusion'; c2Parent.appendChild(c2concl); }
+    c2concl.textContent = styleConclusion;
+
+    // Chart 3 conclusion: index performance
+    var chgValues = allNames.map(function(name) {
+      var wb = (d.wideBase||[]).find(function(w){return w.name === name;});
+      return {name: name, chg: wb ? wb.chg : 0};
+    }).sort(function(a,b){return b.chg - a.chg;});
+    var chgConclusion = '';
+    if (chgValues.length > 0) {
+      var best = chgValues[0], worst = chgValues[chgValues.length - 1];
+      if (best.chg > 0 && worst.chg < 0) {
+        chgConclusion = '指数分化：' + best.name + '领涨（+' + best.chg.toFixed(2) + '%），' + worst.name + '承压（' + worst.chg.toFixed(2) + '%）。';
+      } else if (best.chg > 0) {
+        chgConclusion = '宽基指数普涨，' + best.name + '涨幅最大（+' + best.chg.toFixed(2) + '%）。';
+      } else if (worst.chg < 0) {
+        chgConclusion = '宽基指数普跌，' + worst.name + '跌幅最大（' + worst.chg.toFixed(2) + '%）。';
+      } else {
+        chgConclusion = '宽基指数涨跌互现，整体偏平淡。';
+      }
+    }
+    var c3Parent = c3.parentElement;
+    var c3concl = c3Parent.querySelector('.chart-conclusion');
+    if (!c3concl) { c3concl = document.createElement('div'); c3concl.className = 'chart-conclusion'; c3Parent.appendChild(c3concl); }
+    c3concl.textContent = chgConclusion;
+  } catch(chartEx) { console.error('chart conclusion error:', chartEx); }
 }
 
 // ===== Cross Validation Tab =====
@@ -4167,7 +4261,7 @@ function renderCrossTab() {
   
   // 结论
   var status = calcFundStatus(currentDate);
-  var concHtml = '<h3><em>综合判断</em> · <span class="status-tag ' + status.cls + '">' + status.tag + '</span></h3>';
+  var concHtml = '<h3><em>综合判断</em> · ' + renderClickableTag(status) + '</h3>';
   concHtml += '<div class="combo-text">' + matched.desc + '</div>';
   concHtml += '<div class="combo-text" style="margin-top:6px;font-size:11px;color:var(--t3)">⚠️ 信号背离时降低结论强度。融资余额为滞后数据（T+1披露），方向参考而非实时跟踪。</div>';
   document.getElementById('crossConclusion').innerHTML = concHtml;
@@ -4176,6 +4270,27 @@ function renderCrossTab() {
 // ===== Drawer =====
 function openDrawer() { document.getElementById('drawerOverlay').classList.add('open'); document.getElementById('drawerPanel').classList.add('open'); }
 function closeDrawer() { document.getElementById('drawerOverlay').classList.remove('open'); document.getElementById('drawerPanel').classList.remove('open'); }
+
+// ===== Status Tag Click Popup =====
+function toggleTagPopup(el) {
+  var popup = el.querySelector('.tag-popup');
+  if (!popup) return;
+  // close all other popups first
+  document.querySelectorAll('.tag-popup.show').forEach(function(p) { if (p !== popup) p.classList.remove('show'); });
+  popup.classList.toggle('show');
+}
+function closeAllTagPopups(e) {
+  if (!e.target.closest('.status-tag.clickable')) {
+    document.querySelectorAll('.tag-popup.show').forEach(function(p) { p.classList.remove('show'); });
+  }
+}
+document.addEventListener('click', closeAllTagPopups);
+
+// Helper: render clickable status tag with popup
+function renderClickableTag(status) {
+  return '<span class="status-tag clickable ' + status.cls + '" onclick="toggleTagPopup(this)">' + status.tag +
+    '<div class="tag-popup"><b>' + status.tag + '</b><br>' + status.desc + '</div></span>';
+}
 
 // ===== Init =====
 function init() {
