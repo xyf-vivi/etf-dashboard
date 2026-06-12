@@ -82,12 +82,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .status-tag.flat{background:rgba(109,152,176,.15);color:var(--t2)}
 
 /* ===== Tab Navigation ===== */
-.tab-short{display:none}
 .tabs{display:flex;gap:2px;margin-bottom:0;background:var(--border);border-radius:10px 10px 0 0;overflow:hidden}
 .tab-btn{flex:1;padding:10px 16px;background:rgba(255,255,255,.08);border:none;color:#c8dae5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;text-align:center}
-.tab-btn:hover{background:rgba(255,255,255,.14);color:#fff}
-.tab-btn.active{background:var(--bg);color:var(--blue);border-bottom:2px solid var(--blue);font-weight:700}
-@media(max-width:768px){.tabs{gap:6px;background:transparent;border-radius:0;overflow-x:auto;padding-bottom:6px}.tab-btn{flex:0 0 auto;min-width:64px;padding:8px 10px;border-radius:8px;background:var(--card2);color:var(--t1);border:1px solid var(--border);font-size:12px}.tab-btn.active{background:var(--blue);color:#061018;border-color:var(--blue);font-weight:800}.tab-long{display:none}.tab-short{display:inline}}
+@media(max-width:768px){.tabs{gap:6px;background:transparent;border-radius:0;overflow-x:auto;padding-bottom:6px}.tab-btn{flex:0 0 auto;min-width:80px;padding:8px 12px;border-radius:8px;background:var(--card2);color:var(--t1);border:1px solid var(--border);font-size:12px}.tab-btn.active{background:var(--blue);color:#061018;border-color:var(--blue);font-weight:800}}
 .tab-content{display:none;padding:16px;background:var(--card);border-radius:0 0 10px 10px;margin-bottom:14px}
 .tab-content.active{display:block}
 
@@ -487,6 +484,20 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
 .watch-mob-card .wmc-row{font-size:12px;color:var(--t2);margin-bottom:3px;line-height:1.5}
 .watch-mob-card .wmc-row strong{color:var(--t1)}
 @media(max-width:768px){.watch-table-wrap{display:none}.watch-mob-cards{display:block}}
+/* ===== Watch Desktop Cards ===== */
+.watch-desk-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:12px}
+.watch-card{background:var(--card2);border-radius:10px;padding:16px 18px;border-left:4px solid var(--border);position:relative;transition:.15s}
+.watch-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.watch-card .wc-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.watch-card .wc-name{font-size:15px;font-weight:800;color:var(--t1)}
+.watch-card .wc-tag{padding:2px 10px;border-radius:6px;font-size:11px;font-weight:700}
+.watch-card .wc-row{font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:3px}
+.watch-card .wc-label{color:var(--t3);font-size:11px;font-weight:600}
+.watch-card .wc-ok{color:var(--green)}
+.watch-card .wc-watch{color:var(--orange)}
+.watch-card .wc-risk{color:var(--red);font-weight:600}
+@media(min-width:769px){.watch-mob-cards{display:none!important}}
+@media(max-width:768px){.watch-desk-cards{display:none}}
 /* ===== Collapsible Sections ===== */
 .collapse-section{margin-bottom:12px}
 .collapse-header{background:var(--card2);border-radius:10px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:.15s;border:1px solid var(--border)}
@@ -530,27 +541,71 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
 
   <!-- Tab Navigation -->
   <div class="tabs">
-    <button class="tab-btn active" data-action="switch-tab" data-tab="overview"><span class="tab-long">资金天气预报</span><span class="tab-short">天气</span></button>
-    <button class="tab-btn" data-action="switch-tab" data-tab="concentration"><span class="tab-long">钱集中在哪</span><span class="tab-short">集中度</span></button>
-    <button class="tab-btn" data-action="switch-tab" data-tab="etf"><span class="tab-long">ETF买了什么</span><span class="tab-short">ETF</span></button>
-    <button class="tab-btn" data-action="switch-tab" data-tab="cross"><span class="tab-long">主线验证</span><span class="tab-short">验证</span></button>
+    <button class="tab-btn active" data-action="switch-tab" data-tab="overview">资金天气预报</button>
+    <button class="tab-btn" data-action="switch-tab" data-tab="concentration">钱集中在哪</button>
+    <button class="tab-btn" data-action="switch-tab" data-tab="etf">ETF买了什么</button>
+    <button class="tab-btn" data-action="switch-tab" data-tab="cross">主线验证</button>
   </div>
 
   <!-- Tab 1: Overview = 资金天气预报 -->
   <div class="tab-content active" id="tab-overview">
     <!-- HERO: 今日资金状态 -->
-    <div class="hero-weather" id="heroWeather"></div>
+    <div class="hero-weather" id="heroWeather">
+      <div class="hero-tag" id="heroTag">数据加载中…</div>
+      <div class="hero-title" id="heroTitle">正在读取今日资金数据</div>
+      <div class="hero-desc" id="heroDesc">市场资金状态将根据成交额、集中度、ETF承接等维度综合判断。</div>
+      <div class="hero-action" id="heroAction">今日动作：等待数据加载完成后查看建议</div>
+    </div>
     <!-- 信号分 -->
-    <div class="score-bar" id="scoreBar"></div>
+    <div class="score-bar" id="scoreBar">
+      <div class="score-num" id="scoreNum">—</div>
+      <div style="flex:1">
+        <div class="score-label" id="scoreLabel">信号分 — / 100 · 加载中</div>
+        <div class="score-track"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
+        <div class="score-hint">0-30偏冷 · 30-50观望 · 50-70活跃 · 70-85较强 · 85+过热</div>
+      </div>
+    </div>
     <!-- 三个证据卡 -->
-    <div class="evidence-row" id="evidenceRow"></div>
+    <div class="evidence-row" id="evidenceRow">
+      <div class="ev-card" id="evVolume">
+        <div class="ev-icon">📈</div>
+        <div class="ev-label">放量证据</div>
+        <div class="ev-val" id="evVolumeVal">—</div>
+        <div class="ev-detail" id="evVolumeDetail">等待数据</div>
+      </div>
+      <div class="ev-card" id="evConcentration">
+        <div class="ev-icon">🎯</div>
+        <div class="ev-label">集中证据</div>
+        <div class="ev-val" id="evConcentrationVal">—</div>
+        <div class="ev-detail" id="evConcentrationDetail">等待数据</div>
+      </div>
+      <div class="ev-card" id="evEtf">
+        <div class="ev-icon">🛡️</div>
+        <div class="ev-label">承接证据</div>
+        <div class="ev-val" id="evEtfVal">—</div>
+        <div class="ev-detail" id="evEtfDetail">等待数据</div>
+      </div>
+    </div>
     <!-- 但是提醒 -->
-    <div class="but-warn" id="butWarn"></div>
+    <div class="but-warn" id="butWarn">
+      <div class="but-title">⚠️ 但是提醒</div>
+      <div class="but-content" id="butContent">数据加载完成后，这里会显示今日需要特别注意的风险点。</div>
+    </div>
     <!-- 风险仪表盘 -->
-    <div class="risk-dash" id="riskDash"></div>
+    <div class="risk-dash" id="riskDash">
+      <div class="risk-title">风险仪表盘</div>
+      <div class="risk-items" id="riskItems">
+        <div class="risk-item"><span class="risk-name">拥挤</span><span class="risk-status r-ok" id="riskCrowd">未触发</span><span class="risk-explain" id="riskCrowdExp">TOP100成交占比处于正常区间</span></div>
+        <div class="risk-item"><span class="risk-name">追高</span><span class="risk-status r-ok" id="riskChase">未触发</span><span class="risk-explain" id="riskChaseExp">热门方向资金流入正常</span></div>
+        <div class="risk-item"><span class="risk-name">放量不真实</span><span class="risk-status r-ok" id="riskFake">未触发</span><span class="risk-explain" id="riskFakeExp">成交额与ETF承接方向一致</span></div>
+        <div class="risk-item"><span class="risk-name">杠杆资金</span><span class="risk-status r-ok" id="riskLeverage">未触发</span><span class="risk-explain" id="riskLeverageExp">融资余额变化在正常范围内</span></div>
+        <div class="risk-item"><span class="risk-name">主线退潮</span><span class="risk-status r-ok" id="riskRetreat">未触发</span><span class="risk-explain" id="riskRetreatExp">主题ETF整体承接正常</span></div>
+      </div>
+    </div>
     <!-- 明天重点看 -->
     <div class="watch-box" id="watchBox">
       <h3>明天重点看</h3>
+      <div class="watch-desk-cards" id="watchDeskCards"></div>
       <div class="watch-table-wrap" id="watchTableWrap"></div>
       <div class="watch-mob-cards" id="watchMobCards"></div>
     </div>
@@ -558,7 +613,7 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
     <div class="collapse-section" id="collapseEvidence">
       <div class="collapse-header" data-action="toggle-collapse">
         <span class="collapse-icon">▶</span>
-        <span class="collapse-title">展开：关键证据——为什么说今天是这个状态？</span>
+        <span class="collapse-title">展开：关键证据——今天这个判断从哪来？</span>
       </div>
       <div class="collapse-body" id="evidenceDetail"></div>
     </div>
@@ -566,7 +621,7 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
     <div class="collapse-section" id="collapseSteps">
       <div class="collapse-header" data-action="toggle-collapse">
         <span class="collapse-icon">▶</span>
-        <span class="collapse-title">展开：我是怎么判断资金强弱的？三步拆解</span>
+        <span class="collapse-title">展开：判断资金强弱的三步</span>
       </div>
       <div class="collapse-body" id="stepsDetail"></div>
     </div>
@@ -574,22 +629,12 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
     <div class="collapse-section" id="collapseQuad">
       <div class="collapse-header" data-action="toggle-collapse">
         <span class="collapse-icon">▶</span>
-        <span class="collapse-title">展开：看看哪些方向是持续流入，哪些只是短线异动</span>
+        <span class="collapse-title">展开：哪些方向持续流入，哪些只是短线异动？</span>
       </div>
       <div class="collapse-body">
         <div style="font-size:12px;color:var(--t3);margin-bottom:8px">横轴=当日净流入力度，纵轴=近5日净流入力度。右上=持续流入（主线观察区），右下=短线异动（先观察不急追），左上=今日降温（防主线退潮），左下=持续流出（暂时回避）。</div>
         <div class="quad-matrix" id="quadMatrix"></div>
         <div class="combo-box" id="comboBox"></div>
-      </div>
-    </div>
-    <!-- 折叠区：资金路径 -->
-    <div class="collapse-section" id="collapsePath">
-      <div class="collapse-header" data-action="toggle-collapse">
-        <span class="collapse-icon">▶</span>
-        <span class="collapse-title">展开：资金路径详情</span>
-      </div>
-      <div class="collapse-body">
-        <ul class="path-list" id="pathList"></ul>
       </div>
     </div>
   </div>
@@ -673,10 +718,10 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
     <!-- 行业主题ETF面板 -->
     <div class="subtab-panel" id="etf-panel-theme">
       <div id="themePhaseNotice"></div>
-      <div class="data-status">
-        <span><span class="ds-label">主题覆盖</span> <span class="ds-val">5大类 · 10个核心方向</span></span>
-        <span style="color:var(--blue)">💡 当前覆盖科技成长、医药、金融、防御和周期资源等核心方向；有色、化工用于观察资源品和中游周期资金是否回流</span>
-      </div>
+        <div class="data-status">
+          <span><span class="ds-label">主题样本池</span> <span class="ds-val">5大类 · 10个核心方向</span></span>
+          <span style="color:var(--orange)">⚠️ 暂未完整覆盖：新能源车、光伏、军工、消费、银行等；主题榜仅代表当前样本池，不代表全市场全部行业ETF。</span>
+        </div>
       <!-- 资金方向榜：今日/近5日排名 -->
       <div class="card dir-ranking-card" id="themeDirRanking" style="margin-bottom:10px;display:none">
         <h3>资金<em>方向榜</em>：哪些方向被买，哪些方向被卖</h3>
@@ -724,7 +769,7 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
             <tbody id="themeEtfTbody"></tbody>
           </table>
         </div>
-        <div style="font-size:11px;color:var(--t3);margin-top:6px">⚠️ 净流入为场内资金流估算值（份额变化×单位净值），非交易所官方申赎数据。</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:6px">⚠️ 净流入为「份额变化口径的申赎估算值」（估算公式：当日份额变化 × 当日单位净值），非二级市场成交额，亦非交易所官方逐笔资金流。</div>
         <div style="font-size:11px;color:var(--t3);margin-top:4px;padding:6px 8px;background:rgba(31,48,64,.1);border-radius:4px">📋 后续会继续补充新能源车、光伏、军工、消费、银行等细分主题。</div>
       </div>
     </div>
@@ -771,17 +816,17 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
   <dt>相对流入力度</dt>
   <dd>净流入金额占原有ETF规模的比例。比单看金额更公平，因为大ETF和小ETF不能直接比。</dd>
   <dt>行业主题ETF</dt>
-  <dd>跟踪特定行业或主题指数的ETF（如半导体、AI、创新药等），用来观察资金在买哪些方向。与宽基ETF（看有没有增量资金）回答的问题不同。净流入为场内资金流估算值，非交易所官方申赎数据。</dd>
+  <dd>跟踪特定行业或主题指数的ETF（如半导体、AI、创新药等），用来观察资金在买哪些方向。与宽基ETF（看有没有增量资金）回答的问题不同。净流入为份额变化口径的申赎估算值（份额变化×单位净值），非二级市场成交额，亦非交易所官方逐笔资金流。</dd>
   <dt>近5日净流入</dt>
   <dd>最近5个交易日的净流入合计，用来判断资金流入的持续性。单日流入可能是短线异动，连续流入更值得关注。</dd>
   <dt>资金状态（主题ETF）</dt>
   <dd><b>持续流入</b>：当日和近5日都流入<br><b>短线异动</b>：今天流入，但近5日还没转强<br><b>今日降温</b>：当日流出但近5日流入<br><b>持续流出</b>：当日和近5日都流出</dd>
   <dt>数据状态（宽基）</dt>
-  <dd>该指数当前已成功获取的数据项。齐全=资金、涨跌、成交额、换手率、溢价率全部有数据；否则列出已有项（如"资金·涨跌·成交"），表示这几项可信，未列出的项缺失。</dd>
+  <dd>该指数当前已成功获取的数据项。基础完整=资金估算、涨跌幅、成交额、换手率已接入；增强缺失=折溢价率暂未接入，不参与判断。</dd>
   <dt>溢价率（暂未接入）</dt>
   <dd>ETF场内价格相对基金净值的偏离。折溢价数据暂未接入，不参与净流入方向判断。</dd>
   <dt>融资余额</dt>
-  <dd>投资者借钱买股票后形成的余额。越上升通常说明风险偏好越强，但也意味着杠杆资金增加。融资余额为T+1披露数据，展示的是截至日前一交易日的值。</dd>
+  <dd>投资者借钱买股票后形成的余额。越上升通常说明风险偏好越强，但也意味着杠杆资金增加。融资余额为T+1披露数据。若页面选择日期为T日，展示的是截至T-1交易日的融资余额。</dd>
   <dt>资金状态六分类</dt>
   <dd><b>增量共振</b>：成交放大+集中度正常+ETF流入<br><b>主线抱团</b>：成交放大+集中度上升<br><b>存量抽血</b>：成交未放大+集中度上升<br><b>资金扩散</b>：成交放大+集中度下降<br><b>ETF有承接</b>：ETF流入但成交未放大<br><b>整体降温</b>：成交回落+资金偏谨慎</dd>
   <dt>风险提示</dt>
@@ -1073,9 +1118,9 @@ function getCompleteness(item) {
   if (item.chg != null) has.push('涨跌');
   if (item.totalVolume != null && item.totalVolume > 0) has.push('成交');
   if (item.turnover != null && item.turnover > 0) has.push('换手');
-  if (item.hasPremium === true) has.push('溢价');
-  if (has.length >= 5) return '<span style="color:var(--green);font-size:11px">齐全</span>';
-  if (has.length >= 3) return '<span style="color:var(--t2);font-size:11px">' + has.join('·') + '</span>';
+  // 溢价率暂未接入，不参与完整性判定
+  if (has.length >= 4) return '<span style="color:var(--teal);font-size:11px">基础完整</span>';
+  if (has.length >= 2) return '<span style="color:var(--t2);font-size:11px">' + has.join('·') + '</span>';
   if (has.length > 0) return '<span style="color:var(--orange);font-size:11px">' + has.join('·') + '</span>';
   return '<span style="color:var(--red);font-size:11px">无数据</span>';
 }
@@ -1996,26 +2041,33 @@ var RISK_STATUS_TEXT = {high:'高',watch:'关注中',low:'低',ok:'未触发'};
 var RISK_CLS = {high:'r-high',watch:'r-watch',low:'r-low',ok:'r-ok'};
 
 function renderHeroWeather(d) {
-  var el = document.getElementById('heroWeather');
-  if (!el) return;
+  var tagEl = document.getElementById('heroTag');
+  var titleEl = document.getElementById('heroTitle');
+  var descEl = document.getElementById('heroDesc');
+  var actionEl = document.getElementById('heroAction');
+  if (!tagEl) return;
   if (!d || !d.total) {
-    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3)">该日期无数据</div>';
+    tagEl.textContent = '无数据';
+    tagEl.className = 'hero-tag';
+    titleEl.textContent = '该日期无数据';
+    descEl.textContent = '请选择有其他数据的日期查看资金状态。';
+    actionEl.textContent = '今日动作：暂无建议';
     return;
   }
   var status = calcFundStatus(currentDate);
   var st = STATUS_TEXT[status.tag] || STATUS_TEXT['温和观望'];
-
-  var html = '';
-  html += '<div class="hero-tag ' + status.cls + '">' + status.tag + '</div>';
-  html += '<div class="hero-title">' + st.title + '</div>';
-  html += '<div class="hero-desc">' + st.desc + '</div>';
-  html += '<div class="hero-action">今日动作：' + st.action + '</div>';
-  el.innerHTML = html;
+  tagEl.textContent = status.tag;
+  tagEl.className = 'hero-tag ' + status.cls;
+  titleEl.textContent = st.title;
+  descEl.textContent = st.desc;
+  actionEl.textContent = '今日动作：' + st.action;
 }
 
 function renderScoreBar(d) {
-  var el = document.getElementById('scoreBar');
-  if (!el || !d || !d.total) { if(el) el.innerHTML = ''; return; }
+  var numEl = document.getElementById('scoreNum');
+  var labelEl = document.getElementById('scoreLabel');
+  var fillEl = document.getElementById('scoreFill');
+  if (!numEl || !d || !d.total) { if(numEl) numEl.textContent = '—'; return; }
   var idx = allDates.indexOf(currentDate);
   var prevD = null;
   for (var pi = idx - 1; pi >= 0; pi--) {
@@ -2024,119 +2076,104 @@ function renderScoreBar(d) {
   }
   var score = calcMarketScore(d, prevD);
   var tier = getScoreTier(score);
-  var html = '';
-  html += '<div class="score-num ' + tier.cls + '">' + score + '</div>';
-  html += '<div style="flex:1">';
-  html += '<div class="score-label">信号分 ' + score + ' / 100 · ' + tier.text + '</div>';
-  html += '<div class="score-track"><div class="score-fill ' + tier.barCls + '" style="width:' + score + '%"></div></div>';
-  html += '<div class="score-hint">0-30偏冷 · 30-50观望 · 50-70活跃 · 70-85较强 · 85+过热</div>';
-  html += '</div>';
-  el.innerHTML = html;
+  numEl.textContent = score;
+  numEl.className = 'score-num ' + tier.cls;
+  labelEl.textContent = '信号分 ' + score + ' / 100 · ' + tier.text;
+  fillEl.className = 'score-fill ' + tier.barCls;
+  fillEl.style.width = score + '%';
 }
 
 function renderEvidenceCards(d) {
-  var el = document.getElementById('evidenceRow');
-  if (!el || !d || !d.total) { if(el) el.innerHTML = ''; return; }
-
+  var volVal = document.getElementById('evVolumeVal');
+  var volDetail = document.getElementById('evVolumeDetail');
+  var concVal = document.getElementById('evConcentrationVal');
+  var concDetail = document.getElementById('evConcentrationDetail');
+  var etfVal = document.getElementById('evEtfVal');
+  var etfDetail = document.getElementById('evEtfDetail');
+  if (!volVal || !d || !d.total) {
+    if (volVal) volVal.textContent = '—';
+    if (volDetail) volDetail.textContent = '等待数据';
+    return;
+  }
   var total = d.total;
   var top100Pct = d.top100S && d.total ? d.top100S / d.total * 100 : null;
   var wideTotal = d.wideTotal;
-
   var idx = allDates.indexOf(currentDate);
   var prevD = null;
   for (var pi = idx - 1; pi >= 0; pi--) {
     var pfd = fusedData[allDates[pi]];
     if (pfd && pfd.total != null) { prevD = pfd; break; }
   }
-
-  // Percentile calc
-  var pct100s = [], totals = [];
-  for (var i = Math.max(0, idx - 60); i <= idx; i++) {
-    var fd = fusedData[allDates[i]];
-    if (fd && fd.top100S && fd.total) pct100s.push(fd.top100S / fd.total * 100);
-    if (fd && fd.total) totals.push(fd.total);
-  }
-  function calcPctile(arr, val) {
-    if (!arr.length || val == null) return null;
-    var below = arr.filter(function(v){ return v < val; }).length;
-    return Math.round(below / arr.length * 100);
-  }
-
-  // Card 1: 放量
-  var totalChg = '--';
+  // 放量
+  var volTxt = '—', volDetailTxt = '';
   if (prevD && prevD.total) {
-    var chgPct = (total - prevD.total) / prevD.total * 100;
-    totalChg = (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%';
+    var ratio = total / prevD.total;
+    if (ratio > 1.10) { volTxt = '放量'; volDetailTxt = '成交额较昨日放大' + (ratio*100-100).toFixed(0) + '%'; }
+    else if (ratio > 1.03) { volTxt = '温和放量'; volDetailTxt = '成交额略高于昨日'; }
+    else if (ratio < 0.90) { volTxt = '缩量'; volDetailTxt = '成交额较昨日萎缩' + (100-ratio*100).toFixed(0) + '%'; }
+    else { volTxt = '持平'; volDetailTxt = '成交额与昨日基本持平'; }
+  } else {
+    volTxt = total > 10000 ? '放量' : '温和';
+    volDetailTxt = '成交额' + (total/10000).toFixed(2) + '万亿';
   }
-  var totalPctile = calcPctile(totals, total);
-  var html = '';
-  html += '<div class="evi-card ev-volume">';
-  html += '<div class="evi-label">放量</div>';
-  html += '<div class="evi-value">' + (total/10000).toFixed(2) + '万亿</div>';
-  html += '<div class="evi-sub">较前日 ' + totalChg + '</div>';
-  html += '<div class="evi-pct">' + (totalPctile != null ? '近60日 ' + totalPctile + '%分位' : '') + '</div>';
-  html += '<div class="evi-hint">成交额放大，说明今天市场交易更活跃。但放量不等于普涨，还要看钱是不是只集中在少数方向。</div>';
-  html += '</div>';
-
-  // Card 2: 集中
-  html += '<div class="evi-card ev-conc">';
-  html += '<div class="evi-label">集中</div>';
-  html += '<div class="evi-value">TOP100 ' + (top100Pct != null ? top100Pct.toFixed(1) + '%' : '--') + '</div>';
-  var concPctile = calcPctile(pct100s, top100Pct);
-  var top100Chg = '--';
-  if (prevD && prevD.top100S && prevD.total && top100Pct != null) {
-    var prev100Pct = prevD.top100S / prevD.total * 100;
-    top100Chg = (top100Pct >= prev100Pct ? '+' : '') + (top100Pct - prev100Pct).toFixed(1) + 'pp';
+  volVal.textContent = volTxt;
+  volDetail.textContent = volDetailTxt;
+  // 集中
+  var concTxt = '—', concDetailTxt = '';
+  if (top100Pct != null) {
+    concTxt = top100Pct > 35 ? '偏集中' : top100Pct > 25 ? '正常' : '分散';
+    concDetailTxt = 'TOP100占比' + top100Pct.toFixed(1) + '%';
   }
-  html += '<div class="evi-sub">较前日 ' + top100Chg + '</div>';
-  html += '<div class="evi-pct">' + (concPctile != null ? '近60日 ' + concPctile + '%分位' : '') + '</div>';
-  html += '<div class="evi-hint">TOP100成交占比上升，说明市场成交越来越集中。主线更强，但追高风险也会变大。</div>';
-  html += '</div>';
-
-  // Card 3: 承接
-  html += '<div class="evi-card ev-etf">';
-  html += '<div class="evi-label">承接</div>';
-  html += '<div class="evi-value">宽基ETF ' + (wideTotal != null ? (wideTotal >= 0 ? '+' : '') + wideTotal.toFixed(1) + '亿' : '--') + '</div>';
-  html += '<div class="evi-sub">' + (wideTotal != null ? (wideTotal > 5 ? '有增量承接' : wideTotal > 0 ? '小幅流入' : wideTotal > -5 ? '小幅流出' : '承接偏弱') : '') + '</div>';
-  html += '<div class="evi-pct"><span class="est-badge">估算</span></div>';
-  html += '<div class="evi-hint">宽基ETF份额增加，说明市场有一定承接资金。但这是基于份额变化的估算，不等于官方逐笔资金流。</div>';
-  html += '</div>';
-
-  el.innerHTML = html;
+  concVal.textContent = concTxt;
+  concDetail.textContent = concDetailTxt;
+  // 承接
+  var etfTxt = '—', etfDetailTxt = '';
+  if (wideTotal != null) {
+    if (wideTotal > 10) { etfTxt = '强承接'; etfDetailTxt = '宽基ETF净流入+' + wideTotal.toFixed(0) + '亿'; }
+    else if (wideTotal > 0) { etfTxt = '有承接'; etfDetailTxt = '宽基ETF净流入+' + wideTotal.toFixed(0) + '亿'; }
+    else if (wideTotal > -10) { etfTxt = '弱承接'; etfDetailTxt = '宽基ETF净流出' + (-wideTotal).toFixed(0) + '亿'; }
+    else { etfTxt = '无承接'; etfDetailTxt = '宽基ETF净流出' + (-wideTotal).toFixed(0) + '亿'; }
+  }
+  etfVal.textContent = etfTxt;
+  etfDetail.textContent = etfDetailTxt;
 }
 
 function renderButWarn(d) {
-  var el = document.getElementById('butWarn');
-  if (!el || !d || !d.total) { if(el) el.innerHTML = ''; return; }
-  var status = calcFundStatus(currentDate);
-  var st = STATUS_TEXT[status.tag] || STATUS_TEXT['温和观望'];
-  var html = '';
-  html += '<div class="but-title">但是：' + st.butTitle + '</div>';
-  html += '<div class="but-text">' + st.butText + '</div>';
-  el.innerHTML = html;
+  var contentEl = document.getElementById('butContent');
+  if (!contentEl) return;
+  if (!d || !d.total) { contentEl.textContent = '该日期无数据，请选择其他日期。'; return; }
+  var warnings = [];
+  var wideTotal = d.wideTotal;
+  var top100Pct = d.top100S && d.total ? d.top100S / d.total * 100 : null;
+  if (top100Pct != null && top100Pct > 40) warnings.push('TOP100成交占比达' + top100Pct.toFixed(1) + '%，资金偏抱团，追高需注意风险。');
+  if (wideTotal != null && wideTotal < -20) warnings.push('宽基ETF净流出' + (-wideTotal).toFixed(0) + '亿，增量资金不明显。');
+  if (d.total > 18000) warnings.push('全市场成交额达' + (d.total/10000).toFixed(2) + '万亿，为近期高位，注意是否过热。');
+  if (warnings.length === 0) warnings.push('今日各项指标处于正常区间，暂无特别风险点。');
+  contentEl.innerHTML = warnings.map(function(w){return '<div style="margin-bottom:6px">' + w + '</div>'}).join('');
 }
 
 function renderRiskDash(d) {
-  var el = document.getElementById('riskDash');
-  if (!el || !d || !d.total) { if(el) el.innerHTML = ''; return; }
-  var risks = calcRisks(d);
-  var html = '';
-  html += '<div class="risk-title">风险提醒</div>';
-  html += '<div class="risk-tags">';
-  ['crowd','chase','fakeVol','leverage','retreat'].forEach(function(key) {
-    var label = RISK_LABELS[key];
-    var level = risks[key] || 'ok';
-    html += '<div class="risk-tag ' + RISK_CLS[level] + '" onclick="toggleRiskExplain(&quot;' + key + '&quot;)">';
-    html += label.name + '<span class="rt-status">' + RISK_STATUS_TEXT[level] + '</span>';
-    html += '</div>';
+  var risks = d ? calcRisks(d) : {crowd:'low',chase:'low',fakeVol:'low',leverage:'ok',retreat:'ok'};
+  var items = [
+    {key:'crowd', el:'riskCrowd', exp:'riskCrowdExp'},
+    {key:'chase', el:'riskChase', exp:'riskChaseExp'},
+    {key:'fakeVol', el:'riskFake', exp:'riskFakeExp'},
+    {key:'leverage', el:'riskLeverage', exp:'riskLeverageExp'},
+    {key:'retreat', el:'riskRetreat', exp:'riskRetreatExp'}
+  ];
+  items.forEach(function(it) {
+    var el = document.getElementById(it.el);
+    var expEl = document.getElementById(it.exp);
+    if (!el) return;
+    var r = risks[it.key] || 'low';
+    el.textContent = RISK_STATUS_TEXT[r] || r;
+    el.className = 'risk-status ' + (RISK_CLS[r] || 'r-ok');
+    if (expEl && RISK_LABELS[it.key]) {
+      var explain = RISK_LABELS[it.key].explain || '';
+      // 简化说明，只保留核心提示
+      expEl.textContent = r === 'high' ? '风险较高：' + explain.slice(0, 40) + '…' : explain.slice(0, 50);
+    }
   });
-  html += '</div>';
-  // Risk explanations
-  ['crowd','chase','fakeVol','leverage','retreat'].forEach(function(key) {
-    var label = RISK_LABELS[key];
-    html += '<div class="risk-explain" id="riskExp_' + key + '">' + label.explain + '</div>';
-  });
-  el.innerHTML = html;
 }
 
 function toggleRiskExplain(key) {
@@ -2151,7 +2188,8 @@ function toggleRiskExplain(key) {
 function renderWatchTable(d) {
   var tableWrap = document.getElementById('watchTableWrap');
   var mobCards = document.getElementById('watchMobCards');
-  if (!tableWrap || !d) { if(tableWrap) tableWrap.innerHTML = ''; if(mobCards) mobCards.innerHTML = ''; return; }
+  var deskCards = document.getElementById('watchDeskCards');
+  if (!d) { if(tableWrap) tableWrap.innerHTML = ''; if(mobCards) mobCards.innerHTML = ''; if(deskCards) deskCards.innerHTML = ''; return; }
 
   // Collect theme data for watch items
   var themes = [];
@@ -2190,8 +2228,9 @@ function renderWatchTable(d) {
     fallbackHtml += '<div>2. TOP100占比变化方向（继续上升=拥挤，下降=扩散）</div>';
     fallbackHtml += '<div>3. 宽基ETF能否继续流入（承接是否持续）</div>';
     fallbackHtml += '</div>';
-    tableWrap.innerHTML = fallbackHtml;
+    if (tableWrap) tableWrap.innerHTML = fallbackHtml;
     if (mobCards) mobCards.innerHTML = '';
+    if (deskCards) deskCards.innerHTML = '';
     return;
   }
 
@@ -2209,7 +2248,7 @@ function renderWatchTable(d) {
     return '资金在流出';
   }
   function getConfirmDesc(flow, flow5d, name) {
-    if (flow > 0 && flow5d > 0) return 'ETF继续流入，龙头别放量滞涨';
+    if (flow > 0 && flow5d > 0) return 'ETF继续流入，龙头不放量滞涨';
     if (flow > 0) return '近5日资金转正再确认';
     return 'ETF能否转正流入';
   }
@@ -2219,29 +2258,34 @@ function renderWatchTable(d) {
     if (flow <= 0) return 'ETF持续流出';
     return '资金方向变化';
   }
+  function getBorderColor(cls) {
+    if (cls === 'wt-confirm') return 'var(--green)';
+    if (cls === 'wt-main') return 'var(--blue)';
+    if (cls === 'wt-watch') return 'var(--orange)';
+    return 'var(--t3)';
+  }
 
-  // Desktop table
-  var html = '';
-  html += '<table class="watch-table">';
-  html += '<tr><th>看什么</th><th>今天发生了什么</th><th>明天怎么确认</th><th>什么情况要小心</th></tr>';
-  watchThemes.forEach(function(t) {
-    var tag = getWatchTag(t.flow, t.flow5d);
-    html += '<tr>';
-    html += '<td class="wt-direction">' + t.name + '<span class="wt-tag ' + tag.cls + '">' + tag.text + '</span></td>';
-    html += '<td>' + getTodayDesc(t.flow) + '</td>';
-    html += '<td class="wt-confirm-text">' + getConfirmDesc(t.flow, t.flow5d, t.name) + '</td>';
-    html += '<td class="wt-risk">' + getRiskDesc(t.flow, t.flow5d, t.chg) + '</td>';
-    html += '</tr>';
-  });
-  html += '</table>';
-  tableWrap.innerHTML = html;
+  // Desktop cards
+  if (deskCards) {
+    var deskHtml = '';
+    watchThemes.forEach(function(t) {
+      var tag = getWatchTag(t.flow, t.flow5d);
+      deskHtml += '<div class="watch-card" style="border-left-color:' + getBorderColor(tag.cls) + '">';
+      deskHtml += '<div class="wc-head"><span class="wc-name">' + t.name + '</span><span class="wc-tag ' + tag.cls + '">' + tag.text + '</span></div>';
+      deskHtml += '<div class="wc-row"><span class="wc-label">今天：</span>' + getTodayDesc(t.flow) + '</div>';
+      deskHtml += '<div class="wc-row"><span class="wc-label">明天确认：</span><span class="wc-ok">' + getConfirmDesc(t.flow, t.flow5d, t.name) + '</span></div>';
+      deskHtml += '<div class="wc-row"><span class="wc-label">小心：</span><span class="wc-risk">' + getRiskDesc(t.flow, t.flow5d, t.chg) + '</span></div>';
+      deskHtml += '</div>';
+    });
+    deskCards.innerHTML = deskHtml;
+  }
 
   // Mobile cards
   if (mobCards) {
     var mobHtml = '';
     watchThemes.forEach(function(t) {
       var tag = getWatchTag(t.flow, t.flow5d);
-      mobHtml += '<div class="watch-mob-card">';
+      mobHtml += '<div class="watch-mob-card" style="border-left-color:' + getBorderColor(tag.cls) + '">';
       mobHtml += '<div class="wmc-head"><span class="wmc-name">' + t.name + '</span><span class="wt-tag ' + tag.cls + '">' + tag.text + '</span></div>';
       mobHtml += '<div class="wmc-row"><strong>今天：</strong>' + getTodayDesc(t.flow) + '</div>';
       mobHtml += '<div class="wmc-row"><strong>确认：</strong>' + getConfirmDesc(t.flow, t.flow5d, t.name) + '</div>';
@@ -2250,6 +2294,9 @@ function renderWatchTable(d) {
     });
     mobCards.innerHTML = mobHtml;
   }
+
+  // Hide the old table
+  if (tableWrap) tableWrap.innerHTML = '';
 }
 
 function renderCollapseSections(d) {
