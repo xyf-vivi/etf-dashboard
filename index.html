@@ -645,6 +645,13 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
       <h3>资金<em>集中度</em>：钱是不是只流向少数股票</h3>
       <div style="font-size:11px;color:var(--t3);margin-bottom:8px">TOP100成交额占比 = 成交额前100只股票 / 全市场A股成交额，约覆盖前2%股票。<b>TOP100是主指标</b>，看主线资金池集中度；TOP10是辅助指标，看极端抱团。</div>
     </div>
+    <!-- 集中度结论卡 -->
+    <div class="conc-conclusion-card" id="concConclusionCard" style="background:var(--card2);border-radius:12px;padding:16px 20px;margin-bottom:10px;border-left:4px solid var(--blue)">
+      <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:8px">📊 集中度结论</div>
+      <div id="concConclusionText" style="font-size:13px;color:var(--t2);line-height:1.8">
+        数据加载中，正在读取TOP100占比、TOP10占比及趋势方向…
+      </div>
+    </div>
     <div class="row2">
       <div class="card">
         <h3>集中度<em>圆环</em></h3>
@@ -661,7 +668,7 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
       </div>
       <div class="card">
         <h3>TOP10<em>个股</em>成交明细</h3>
-        <div style="overflow:auto;max-height:380px"><table><thead><tr><th>#</th><th>名称</th><th>成交额(亿)</th><th>占比</th><th>涨跌</th><th>行业涨跌</th><th>行业</th><th>上榜</th><th>状态</th></tr></thead><tbody id="concTbody"></tbody></table></div>
+        <div style="overflow:auto;max-height:380px"><table><thead><tr><th>#</th><th>个股</th><th>成交额</th><th>成交占比</th><th>个股涨跌</th><th>所属行业</th><th>行业涨跌</th><th>连续上榜</th><th>状态</th></tr></thead><tbody id="concTbody"></tbody></table></div>
       </div>
     </div>
     <div class="card">
@@ -764,7 +771,7 @@ tbody tr:hover{background:rgba(43,147,245,.06)}
         <div class="mob-table-wrap" style="overflow-x:auto">
           <table class="sector-table" id="themeEtfTable">
             <thead><tr>
-              <th>主题大类</th><th>细分主题</th><th>代表ETF</th><th>当日净流入</th><th>相对流入力度</th><th>近5日净流入</th><th>成交额</th><th>换手率</th><th>涨跌幅</th><th>资金状态</th><th>样本</th>
+              <th>主题大类</th><th>细分主题</th><th>样本ETF</th><th>当日净流入</th><th>相对流入力度</th><th>近5日净流入</th><th>成交额</th><th>换手率</th><th>涨跌幅</th><th>资金状态</th><th>样本</th>
             </tr></thead>
             <tbody id="themeEtfTbody"></tbody>
           </table>
@@ -2513,6 +2520,21 @@ function renderConcentrationTab() {
   document.getElementById('dpct10').textContent = top10Pct.toFixed(1) + '%';
   try { drawDonut('donut100', d.top100S, d.total, '#e8930a'); } catch(ex) {}
   document.getElementById('dpct100').textContent = top100Pct.toFixed(1) + '%';
+  
+  // 填充集中度结论卡
+  var concText = '';
+  if (top100Pct >= 35) {
+    concText = '<span style="color:var(--red);font-weight:700">资金高度抱团</span>：TOP100成交占比处于近60日偏高位置（' + top100Pct.toFixed(1) + '%），说明钱主要集中在少数高成交股票里。';
+    if (top10Pct >= 9) concText += ' TOP10占比同步抬升（' + top10Pct.toFixed(1) + '%），极端拥挤风险也在抬头。';
+    concText += '<br>怎么看：主线强度更高，但追高风险也更高。';
+  } else if (top100Pct >= 30) {
+    concText = '<span style="color:var(--orange);font-weight:700">资金偏抱团</span>：TOP100成交占比（' + top100Pct.toFixed(1) + '%）偏高，钱相对集中在主线股票池。';
+    concText += '<br>怎么看：主线方向明确，但尚未极端拥挤，可重点关注。';
+  } else {
+    concText = '<span style="color:var(--green);font-weight:700">资金扩散</span>：TOP100成交占比（' + top100Pct.toFixed(1) + '%）正常，钱没有过度集中在少数股票。';
+    concText += '<br>怎么看：市场广度较好，多个方向可能轮动。';
+  }
+  document.getElementById('concConclusionText').innerHTML = concText;
   
   // Extreme card
   document.getElementById('extremeCard').innerHTML = 
