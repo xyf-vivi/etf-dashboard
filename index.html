@@ -3846,7 +3846,7 @@ function renderEtfTable(d) {
   var wMobEl = document.getElementById('wideMobCards');
   if (wMobEl) {
     var wmhtml = '';
-    sorted.forEach(function(item) {
+    sorted.forEach(function(item, mobIdx) {
       var action = getActionTag(item);
       var flowCls = (item.flow || 0) >= 0 ? 'up' : 'dn';
       var chgCls = (item.chg || 0) >= 0 ? 'up' : 'dn';
