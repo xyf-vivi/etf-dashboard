@@ -2133,6 +2133,8 @@ function renderWatchTable(d) {
   if (!tableWrap || !d) { if(tableWrap) tableWrap.innerHTML = ''; if(mobCards) mobCards.innerHTML = ''; return; }
 
   // Collect theme data for watch items
+  // 入选门槛: sampleCount >= 2
+  // 排序分两层: sameDir>=2(多只同向)优先 → 不足时从sameDir>=1(有分歧)补位
   var themes = [];
   if (d.themeEtf) {
     Object.keys(THEME_ETF_MAP).forEach(function(cat) {
@@ -2142,12 +2144,23 @@ function renderWatchTable(d) {
           var t = td.themes[tn];
           if (!t) return;
           var pass = (t.coverage != null && t.coverage >= 0.5) &&
-            t.flow != null && t.flow5d != null && (t.sampleCount || 0) >= 1;
+            t.flow != null && t.flow5d != null && (t.sampleCount || 0) >= 2;
           if (pass) {
+            var sameDir = 0, oppDir = 0;
+            if (t.etfDetails) {
+              t.etfDetails.forEach(function(e) {
+                if (e.flow != null) {
+                  if ((t.flow >= 0 && e.flow > 0) || (t.flow < 0 && e.flow < 0)) sameDir++;
+                  else oppDir++;
+                }
+              });
+            }
             themes.push({
               name: tn, cat: cat,
               flow: t.flow, flow5d: t.flow5d,
-              chg: t.chg, scaleRatio: t.scaleRatio
+              chg: t.chg, scaleRatio: t.scaleRatio,
+              sampleCount: t.sampleCount || 0,
+              sameDir: sameDir, oppDir: oppDir
             });
           }
         });
@@ -2155,9 +2168,16 @@ function renderWatchTable(d) {
     });
   }
 
-  // Sort by flow descending, take top 4
-  themes.sort(function(a,b){ return b.flow - a.flow; });
-  var watchThemes = themes.slice(0, 4);
+  // 分两层排序: sameDir>=2优先 → 不足4个时sameDir>=1补位 → 每层内按flow降序
+  var tier1 = themes.filter(function(t) { return t.sameDir >= 2; });
+  var tier2 = themes.filter(function(t) { return t.sameDir < 2; });
+  var sortByFlow = function(a, b) {
+    if (b.flow !== a.flow) return b.flow - a.flow;
+    return b.flow5d - a.flow5d;
+  };
+  tier1.sort(sortByFlow);
+  tier2.sort(sortByFlow);
+  var watchThemes = tier1.concat(tier2).slice(0, 4);
 
   // If no theme data, fallback to generic watch items
   if (watchThemes.length === 0) {
@@ -2175,24 +2195,35 @@ function renderWatchTable(d) {
   }
 
   // Determine status and tag for each theme
-  function getWatchTag(flow, flow5d) {
-    if (flow > 0 && flow5d > 0) return {text:'资金持续流入',cls:'wt-confirm'};
+  function getWatchTag(flow, flow5d, sameDir, oppDir) {
+    var hasDiverge = oppDir > 0 && sameDir <= 1; // 有逆向往ETF且同向≤1 → 内部分歧
+    if (flow > 0 && flow5d > 0) {
+      return hasDiverge
+        ? {text:'净流入但内部分歧',cls:'wt-watch'}
+        : {text:'资金持续流入',cls:'wt-confirm'};
+    }
     if (flow > 0 && flow5d <= 0) return {text:'今日回补',cls:'wt-watch'};
     if (flow <= 0 && flow5d > 0) return {text:'短线回落',cls:'wt-main'};
     return {text:'持续流出',cls:'wt-defend'};
   }
-  function getTodayDesc(flow) {
-    if (flow > 10) return '资金大幅流入';
-    if (flow > 0) return '资金还在流入';
-    if (flow > -5) return '资金基本持平';
-    return '资金在流出';
+  function getTodayDesc(flow, sameDir, oppDir) {
+    var base;
+    if (flow > 10) base = '资金大幅流入';
+    else if (flow > 0) base = '资金还在流入';
+    else if (flow > -5) base = '资金基本持平';
+    else base = '资金在流出';
+    if (sameDir > 0 && oppDir > 0) {
+      base += '（' + sameDir + '进' + oppDir + '出）';
+    }
+    return base;
   }
   function getConfirmDesc(flow, flow5d, name) {
     if (flow > 0 && flow5d > 0) return 'ETF连续流入，关注龙头是否放量滞涨';
     if (flow > 0) return '需近5日资金转正后再确认';
     return 'ETF能否转正流入';
   }
-  function getRiskDesc(flow, flow5d, chg) {
+  function getRiskDesc(flow, flow5d, chg, sameDir, oppDir) {
+    if (oppDir > 0 && sameDir <= 1 && flow > 0) return '内部有分歧，可能只是龙头单只撑量';
     if (flow > 0 && flow5d > 0 && chg > 3) return '放量冲高回落';
     if (flow > 0 && flow5d <= 0) return '流入后快速流出';
     if (flow <= 0) return 'ETF持续流出';
@@ -2204,12 +2235,12 @@ function renderWatchTable(d) {
   html += '<table class="watch-table">';
   html += '<tr><th>看什么</th><th>今天发生了什么</th><th>明天怎么确认</th><th>什么情况要小心</th></tr>';
   watchThemes.forEach(function(t) {
-    var tag = getWatchTag(t.flow, t.flow5d);
+    var tag = getWatchTag(t.flow, t.flow5d, t.sameDir, t.oppDir);
     html += '<tr>';
     html += '<td class="wt-direction">' + t.name + '<span class="wt-tag ' + tag.cls + '">' + tag.text + '</span></td>';
-    html += '<td>' + getTodayDesc(t.flow) + '</td>';
+    html += '<td>' + getTodayDesc(t.flow, t.sameDir, t.oppDir) + '</td>';
     html += '<td class="wt-confirm-text">' + getConfirmDesc(t.flow, t.flow5d, t.name) + '</td>';
-    html += '<td class="wt-risk">' + getRiskDesc(t.flow, t.flow5d, t.chg) + '</td>';
+    html += '<td class="wt-risk">' + getRiskDesc(t.flow, t.flow5d, t.chg, t.sameDir, t.oppDir) + '</td>';
     html += '</tr>';
   });
   html += '</table>';
@@ -2219,12 +2250,12 @@ function renderWatchTable(d) {
   if (mobCards) {
     var mobHtml = '';
     watchThemes.forEach(function(t) {
-      var tag = getWatchTag(t.flow, t.flow5d);
+      var tag = getWatchTag(t.flow, t.flow5d, t.sameDir, t.oppDir);
       mobHtml += '<div class="watch-mob-card">';
       mobHtml += '<div class="wmc-head"><span class="wmc-name">' + t.name + '</span><span class="wt-tag ' + tag.cls + '">' + tag.text + '</span></div>';
-      mobHtml += '<div class="wmc-row"><strong>今天：</strong>' + getTodayDesc(t.flow) + '</div>';
+      mobHtml += '<div class="wmc-row"><strong>今天：</strong>' + getTodayDesc(t.flow, t.sameDir, t.oppDir) + '</div>';
       mobHtml += '<div class="wmc-row"><strong>确认：</strong>' + getConfirmDesc(t.flow, t.flow5d, t.name) + '</div>';
-      mobHtml += '<div class="wmc-row"><strong>小心：</strong><span style="color:var(--orange)">' + getRiskDesc(t.flow, t.flow5d, t.chg) + '</span></div>';
+      mobHtml += '<div class="wmc-row"><strong>小心：</strong><span style="color:var(--orange)">' + getRiskDesc(t.flow, t.flow5d, t.chg, t.sameDir, t.oppDir) + '</span></div>';
       mobHtml += '</div>';
     });
     mobCards.innerHTML = mobHtml;
