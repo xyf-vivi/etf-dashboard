@@ -2176,20 +2176,20 @@ function renderWatchTable(d) {
 
   // Determine status and tag for each theme
   function getWatchTag(flow, flow5d) {
-    if (flow > 0 && flow5d > 0) return {text:'主线确认',cls:'wt-confirm'};
-    if (flow > 0 && flow5d <= 0) return {text:'先观察',cls:'wt-watch'};
-    if (flow <= 0 && flow5d > 0) return {text:'主线观察',cls:'wt-main'};
-    return {text:'防御观察',cls:'wt-defend'};
+    if (flow > 0 && flow5d > 0) return {text:'资金持续流入',cls:'wt-confirm'};
+    if (flow > 0 && flow5d <= 0) return {text:'今日回补',cls:'wt-watch'};
+    if (flow <= 0 && flow5d > 0) return {text:'短线回落',cls:'wt-main'};
+    return {text:'持续流出',cls:'wt-defend'};
   }
   function getTodayDesc(flow) {
-    if (flow > 10) return '资金持续流入';
+    if (flow > 10) return '资金大幅流入';
     if (flow > 0) return '资金还在流入';
     if (flow > -5) return '资金基本持平';
     return '资金在流出';
   }
   function getConfirmDesc(flow, flow5d, name) {
-    if (flow > 0 && flow5d > 0) return 'ETF继续流入，龙头别放量滞涨';
-    if (flow > 0) return '近5日资金转正再确认';
+    if (flow > 0 && flow5d > 0) return 'ETF连续流入，关注龙头是否放量滞涨';
+    if (flow > 0) return '需近5日资金转正后再确认';
     return 'ETF能否转正流入';
   }
   function getRiskDesc(flow, flow5d, chg) {
